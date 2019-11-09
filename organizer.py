@@ -87,8 +87,6 @@ class Organizer:
         late = str(int(newStart) + 1)
 
 
-
-
         #compare user time with start time and end time
         if (newtime >= late and newtime <= newEnd):
             return 'Time: [color=#8B0000]{}[/color]\n'.format(tAttended)
@@ -121,7 +119,9 @@ class Organizer:
 
         prevExtension = None
 
-        prevNegation = False
+        prevNegation = None
+
+        wordBehindNegation = None
 
         with open("good.txt") as file:
             goodwords = file.read().split()
@@ -144,71 +144,75 @@ class Organizer:
 
             for word in message:
 
-
                 if word in goodwords and previousWord in extensions:
                     print("good sentiment detected! But there is a possible negation, the word was: " + Fore.BLACK + Back.GREEN + word + Style.RESET_ALL)
 
                     #***Detect word negation***
-                    if previousWord not in negationwords and prevNegation:
-                        print("negation detected! The word: " + Fore.BLACK + Back.GREEN + word + Style.RESET_ALL + " was negated by: " + Fore.BLACK + Back.YELLOW + previousWord + Style.RESET_ALL)
+                    if previousWord not in negationwords and negationPresent:
+                        print("negation detected! The word: " + Fore.BLACK + Back.GREEN + word + Style.RESET_ALL + " was negated by: " + Fore.BLACK + Back.YELLOW + prevNegation + Style.RESET_ALL)
 
                     else:
                         goodSentimentRank = goodSentimentRank + 1
 
                     if goodSentimentRank > 5:
                         goodSentimentRank = 5
-
 
                 elif word in goodwords:
                     print("good sentiment detected! The word was: " + Fore.BLACK + Back.GREEN + word + Style.RESET_ALL)
 
                     #***Detect word negation***
-                    if previousWord in negationwords:
-                        print("negation detected! The word: " + Fore.BLACK + Back.GREEN + word + Style.RESET_ALL + " was negated by: " + Fore.BLACK + Back.YELLOW + previousWord + Style.RESET_ALL)
-                        prevNegation = False
+                    if wordBehindNegation in negationwords:
+                        print("negation detected! The word: " + Fore.BLACK + Back.GREEN + word + Style.RESET_ALL + " was negated by: " + Fore.BLACK + Back.YELLOW + wordBehindNegation + Style.RESET_ALL)
+                        negationPresent = False
                     else:
                         goodSentimentRank = goodSentimentRank + 1
-                        prevNegation = False
+                        negationPresent = False
 
                     if goodSentimentRank > 5:
                         goodSentimentRank = 5
+
 
                 if word in badwords and previousWord in extensions:
                     print("bad sentiment detected! But there is a possible negation, the word was: " + Fore.BLACK + Back.RED + word + Style.RESET_ALL)
 
                     # ***Detect word negation***
                     if previousWord not in negationwords and prevNegation:
-                        print("negation detected! The word: " + Fore.BLACK + Back.RED + word + Style.RESET_ALL + " was negated by: " + Fore.BLACK + Back.YELLOW + previousWord + Style.RESET_ALL)
-                        prevNegation = False
+                        print("negation detected! The word: " + Fore.BLACK + Back.RED + word + Style.RESET_ALL + " was negated by: " + Fore.BLACK + Back.YELLOW + prevNegation + Style.RESET_ALL)
+                        negationPresent = False
                     else:
                         badSentimentRank = badSentimentRank + 1
-                        prevNegation = False
+                        negationPresent = False
 
                     if badSentimentRank > 5:
                         badSentimentRank = 5
 
-                    #*****figure this out**************
-                    #if word in negationwords:
-                    #    prevNegation = True
-                    #else:
-                    #    previousWord = word
 
                 elif word in badwords:
                     print("bad sentiment detected! The word was: " + Fore.BLACK + Back.RED + word + Style.RESET_ALL)
 
                     #***Detect word negation***
-                    if previousWord in negationwords:
-                        print("negation detected! The word: " + Fore.BLACK + Back.RED + word + Style.RESET_ALL + " was negated by: " + Fore.BLACK + Back.YELLOW + previousWord + Style.RESET_ALL)
-                        prevNegation = False
+                    if wordBehindNegation in negationwords:
+                        print("negation detected! The word: " + Fore.BLACK + Back.RED + word + Style.RESET_ALL + " was negated by: " + Fore.BLACK + Back.YELLOW + wordBehindNegation + Style.RESET_ALL)
+                        negationPresent = False
                     else:
                         badSentimentRank = badSentimentRank + 1
-                        prevNegation = False
+                        negationPresent = False
 
                     if badSentimentRank > 5:
                         badSentimentRank = 5
 
+            #*****Store previous words as needed as negations or extensions*****
+                if word in negationwords:
+                    negationPresent = True
+                    prevNegation = word
+                else:
+                    previousWord = word
+
+                wordBehindNegation = word
 
 
+
+            #*****Declare final sentiments and apply them to each user******
             finalSentiment = goodSentimentRank - badSentimentRank
 
             user = self.classify_sentiment(finalSentiment)
@@ -231,12 +235,3 @@ class Organizer:
             return 'Sentiment: [color=#ff9999]Bad[/color]\n'
         if sentimentRank == -5:
             return 'Sentiment: [color=#ff0000]Awful[/color]\n'
-
-
-
-
-
-
-
-
-
