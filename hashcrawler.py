@@ -13,7 +13,7 @@ import twitter_credentials
 
 class Hashcrawler:
 
-    def crawl(self, hashName, startTime, endTime):
+    def crawl(self, hashName, startTime, endTime, lateValue):
 
         #           **********SIGN IN TO TWITTER USING KEYS FROM ANOTHER FILE **********
         auth = tweepy.OAuthHandler(twitter_credentials.CONSUMER_KEY, twitter_credentials.CONSUMER_SECRET)
@@ -36,28 +36,33 @@ class Hashcrawler:
 
         csvWriter = csv.writer(csvFile)
 
+        repeatUsers = []
 
 
 
         #           **********QUERY FOR CRAWLING SPECIFIED TAGS **********
-        for tweet in tweepy.Cursor(api.search, q="#selfiehere" + hashName, count=100, lang="en", since=startTime, until=endTime, include_entities=True).items():
+        for tweet in tweepy.Cursor(api.search, q="#selfiehere" + hashName, count=100, lang="en", since=startTime, until=endTime, include_entities=True, include_rts = True).items():
             print(tweet.created_at, tweet.text, tweet.user.name)
+
             if 'media' in tweet.entities:
                 for image in tweet.entities['media']:
-                    print(tweet.created_at, tweet.text, tweet.user.name, image['media_url'])
-                    usernameList.append(tweet.user.name)
-                    timeTweetedList.append(tweet.created_at)
-                    messageList.append(tweet.text)
-                    imageList.append(image['media_url'])
-                    retweetList.append(tweet.retweet_count)
-                    favoriteList.append(tweet.favorite_count)
+                    if (not tweet.retweeted) and ('RT @' not in tweet.text):
+                        print(tweet.created_at, tweet.text, tweet.user.name, image['media_url'])
+                        usernameList.append(tweet.user.name)
+                        timeTweetedList.append(tweet.created_at)
+                        messageList.append(tweet.text)
+                        imageList.append(image['media_url'])
+                        retweetList.append(tweet.retweet_count)
+                        favoriteList.append(tweet.favorite_count)
 
 
-                    csvWriter.writerow([tweet.created_at, tweet.text.encode('utf-8')])
 
-        #           **********SEND COLLECTED RAW DATA TO ORGANIZER **********
+
+                        csvWriter.writerow([tweet.created_at, tweet.text.encode('utf-8')])
+
+        #   **********SEND COLLECTED RAW DATA TO ORGANIZER **********
         organizer1 = organizer
-        organizer.organize(timeTweetedList, messageList, startTime, endTime, usernameList, imageList, retweetList, favoriteList)
+        organizer.organize(timeTweetedList, messageList, startTime, endTime, usernameList, imageList, retweetList, favoriteList, lateValue)
 
 
         return organizer1
