@@ -1,0 +1,44 @@
+import tweepy
+import csv
+import selector
+import pandas as pd
+
+
+class hash_crawler:
+
+    def __init__(self, x=0):
+        self.x = x
+
+
+def crawl(hashName):
+    consumer_key = 'SvGV93GV8MBtpsw9dHjXdCrQy'
+    consumer_secret = 'DKOItPgC4XuXMWZ7wuFjyIH8YHXlmHWWuqvAnGiJzNyiZjRkZb'
+    access_token = '1174028330447921153-ppK3vlJ8N6MHAghk9JAxvMpWroTupP'
+    access_token_secret = 'TN85KBFo62L19TBOC0N5WQen97qbG68z9BzrDwWfckZhP'
+
+    auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
+    auth.set_access_token(access_token, access_token_secret)
+    api = tweepy.API(auth, wait_on_rate_limit=True)
+
+    # take an example hashtag, lets say #selfieherebostonmarathon
+    # open new csv file
+    csvFile = open('bm.csv', 'a')
+
+    csvWriter = csv.writer(csvFile)
+
+    # specified hashtag query
+    for tweet in tweepy.Cursor(api.search, q="#selfieherebostonmarathon", count=100, lang="en",
+                               since="2019-09-22").items():
+        print(tweet.created_at, tweet.text)
+        csvWriter.writerow([tweet.created_at, tweet.text.encode('utf-8')])
+
+
+
+
+
+#def main():
+ #   selector.feeder()
+
+
+#if __name__ == '__main__':
+ #   main()
